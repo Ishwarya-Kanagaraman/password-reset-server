@@ -106,7 +106,7 @@ router.route("/signup").post(async (request, response) => {
           subject: "(Do-not-reply) signup confirmation Mail",
           // text: 'Node.js testing mail'
           html: `<h1>Hi ${newUser.firstName} ${newUser.lastName},</h1><br/><h2>Welcome to Our Creators Insititute</h2><p>
-            <a href="https://password-reset-my-server.herokuapp.com/verify?token=${token}">Click Here to activate your Account</a> `,
+            <a href="https://student-mentor-assign-server.herokuapp.com/verify?token=${token}">Click Here to activate your Account</a> `,
         },
         function (err, info) {
           if (err) {

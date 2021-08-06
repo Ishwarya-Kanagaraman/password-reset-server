@@ -4,12 +4,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import {userRouter} from './routes/users.js'
 const app=express();
-const PORT=process.env.PORT||3003;
+const PORT=process.env.PORT||3001;
 dotenv.config();
 
 // connect to the database
 const url=process.env.MONGO_URL;
-// const url="mongodb+srv://ishwarya_23:Kuppu@1614013@cluster0.i7g84.mongodb.net/userData?retryWrites=true&w=majority";
+// const url="mongodb+srv://ishwarya_23:Kuppu@1614013@cluster0.i7g84.mongodb.net/Students?retryWrites=true&w=majority";
 
  
 mongoose.connect(url,{ useNewUrlParser: true, useUnifiedTopology: true });
