@@ -8,8 +8,8 @@ const PORT=process.env.PORT||3003;
 dotenv.config();
 
 // connect to the database
-// const url=process.env.MONGO_URL;
-const url="mongodb+srv://ishwarya_23:Kuppu@1614013@cluster0.i7g84.mongodb.net/userData?retryWrites=true&w=majority";
+const url=process.env.MONGO_URL;
+// const url="mongodb+srv://ishwarya_23:Kuppu@1614013@cluster0.i7g84.mongodb.net/userData?retryWrites=true&w=majority";
 
  
 mongoose.connect(url,{ useNewUrlParser: true, useUnifiedTopology: true });

@@ -1,11 +1,11 @@
 import { Users } from "../models/user.js";
 import dotenv from "dotenv";
-
+import crypto from "crypto"
 import jwt from "jsonwebtoken";
-dotenv.config();
 import express from "express";
-import bcrypt, { genSalt } from "bcrypt";
+import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
+dotenv.config();
 const router = express.Router();
 let transporter = nodemailer.createTransport({
   service: "gmail",
@@ -139,7 +139,7 @@ router.route("/verify").get(async (request, response) => {
   }
 });
 
-// login function
+// login function tested 100%
 router.route("/login").post(async (request, response) => {
   const { email, password } = request.body;
   try {
@@ -147,9 +147,11 @@ router.route("/login").post(async (request, response) => {
 
     if (!findUser) {
       return response.status(401).send({ message: "Invalid credentials!" });
-    } else if (!findUser.confirm) {
-      return response.status(403).json({ message: "Verify Your Email-Id" });
-    } else if (
+    } 
+    // else if (!findUser.confirm) {
+    //   return response.status(403).json({ message: "Verify Your Email-Id" });
+    // } 
+    else if (
       findUser &&
       (await bcrypt.compare(password, findUser.password))
     ) {
@@ -191,22 +193,23 @@ router.route("/forgot-password").post(async (request, response) => {
            subject:'Password reset',
            html:`<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
            <a href="https://password-reset-my-server.herokuapp.com/reset-password/${token}"> click here </a>`
-    })
+    });
+    response.status(200).json({ message: "Email Sent successfully." });
 
 });
   }catch(err){
       console.log(err);
   }
 });
-// reset password function
+// reset password function tested working 100%.
 
-router.route('/reset-password')
+router.route('/reset-password/:token')
 .post(async (request,response)=>{
-    const {oldToken}=request.params;
+    const{ token}=request.params;
     const {newPassword}=request.body;
     try{
       const user=await Users.find({
-          resetToken:oldToken,
+          resetToken:token,
           expiryTime:{$gt: Date.now()}
       })
       const salt=await bcrypt.genSalt(10);
