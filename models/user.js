@@ -21,6 +21,16 @@ const userSchema=new mongoose.Schema({
     mobileNo:{
         type:Number,
         required:true
+    },
+    confirm:{
+        type:Boolean,
+        default:false
+    },
+    resetToken:{
+        type:String
+    },
+    expiryTime:{
+        type:String
     }
 })
 export const Users=mongoose.model("user",userSchema);
