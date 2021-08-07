@@ -29,17 +29,7 @@ router
     }
   })
   // to add new Users
-  .post(async (request, response) => {
-    const addUser = request.body;
-    console.log(addUser);
-    const user = new Users(addUser);
-    try {
-      const newUser = await user.save();
-      response.send({ newUser, message: "created and Added successfully" });
-    } catch (err) {
-      console.log(err);
-    }
-  })
+ 
   // to delete specific User
   .delete(async (request, response) => {
     const { id } = request.body;
@@ -75,6 +65,18 @@ router
       console.log(err);
     }
   });
+  router.route('/createUsers')
+  .post(async (request, response) => {
+    const addUser = request.body;
+    console.log(addUser);
+    const user = new Users(addUser);
+    try {
+      const newUser = await user.save();
+      response.send({ newUser, message: "created and Added successfully" });
+    } catch (err) {
+      console.log(err);
+    }
+  })
 // to signup a user
 router.route("/signup").post(async (request, response) => {
   const { firstName, lastName, email, password, mobileNo } = request.body;
