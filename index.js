@@ -10,7 +10,8 @@ dotenv.config();
 // connect to the database
 const url=process.env.MONGO_URL;
 // const url="mongodb+srv://ishwarya_23:Kuppu@1614013@cluster0.i7g84.mongodb.net/Students?retryWrites=true&w=majority";
-
+app.use(express.json());
+app.use(cors());
  
 mongoose.connect(url,{ useNewUrlParser: true, useUnifiedTopology: true });
 const con=mongoose.connection;
@@ -18,8 +19,7 @@ con.on("open",()=>console.log("Mongo DB is connected"))
 
 
 //middleware
-app.use(express.json());
-app.use(cors());
+
 app.get("/",(req,res)=>{
     res.send("Welcome to Node app")
 })
