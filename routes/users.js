@@ -21,7 +21,7 @@ router
   .get(async (request, response) => {
     try {
       const usersList = await Users.find();
-      response.send(usersList);
+      response.json(usersList);
       console.log(usersList);
     } catch (err) {
       response.send(err);
