@@ -1,6 +1,6 @@
 import { Users } from "../models/user.js";
 import dotenv from "dotenv";
-import crypto from "crypto"
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import express from "express";
 import bcrypt from "bcrypt";
@@ -29,7 +29,7 @@ router
     }
   })
   // to add new Users
- 
+
   // to delete specific User
   .delete(async (request, response) => {
     const { id } = request.body;
@@ -65,21 +65,19 @@ router
       console.log(err);
     }
   });
-  router.route('/createUsers')
-  .post(async (request, response) => {
-    const addUser = request.body;
-    console.log(addUser);
-    const user = new Users(addUser);
-    try {
-      const newUser = await user.save();
-      response.send({ newUser, message: "created and Added successfully" });
-    } catch (err) {
-      console.log(err);
-    }
-  })
+router.route("/createUsers").post(async (request, response) => {
+  const addUser = request.body;
+  console.log(addUser);
+  const user = new Users(addUser);
+  try {
+    const newUser = await user.save();
+    response.send({ newUser, message: "created and Added successfully" });
+  } catch (err) {
+    console.log(err);
+  }
+});
 // to signup a user
-router.route("/signup")
-.post(async (request, response) => {
+router.route("/signup").post(async (request, response) => {
   const { firstName, lastName, email, password, mobileNo } = request.body;
   const findDuplicate = await Users.findOne({ email: email });
   if (findDuplicate) {
@@ -134,13 +132,13 @@ router.route("/verify").get(async (request, response) => {
     if (token) {
       const { id } = jwt.verify(token, "MySecretKey");
       await Users.updateOne({ _id: id }, { confirm: true });
-      response.send('Your account is activated Successfully!!!!')
-      // response.redirect(`https://main--password-reset-frontend.netlify.app/`);
+      response.send("Your account is activated Successfully!!!!");
+      response.redirect(`https://main--password-reset-frontend.netlify.app/`);
     } else {
       response.status(401).json({ message: "Invalid Token" });
     }
   } catch (err) {
-    response.status(500).send( "Server Error" );
+    response.status(500).send("Server Error");
   }
 });
 
@@ -152,14 +150,11 @@ router.route("/login").post(async (request, response) => {
 
     if (!findUser) {
       return response.status(401).send({ message: "Invalid credentials!" });
-    } 
+    }
     // else if (!findUser.confirm) {
     //   return response.status(403).json({ message: "Verify Your Email-Id" });
-    // } 
-    else if (
-      findUser &&
-      (await bcrypt.compare(password, findUser.password))
-    ) {
+    // }
+    else if (findUser && (await bcrypt.compare(password, findUser.password))) {
       const genToken = jwt.sign({ id: findUser._id }, "secretKey");
       response.cookie("jwtToken", genToken, {
         sameSite: "strict",
@@ -178,61 +173,66 @@ router.route("/login").post(async (request, response) => {
 // forgot password function
 router.route("/forgot-password").post(async (request, response) => {
   const { email } = request.body;
-  try{
-  const user = await Users.findOne({ email: email });
- 
-  crypto.randomBytes(32, async (err, buffer) => {
-    if (err) {
-      console.log(err);
-      return response.status(500).send({ message: "Can't generate token" });
-    }
-    const token = buffer.toString("hex");
-    if(!user){
-        response.send({message:`No user Found for this email ${email} Kindly Register and then try again `})
-    }
-    user.resetToken=token;
-    user.expiryTime=Date.now() + 3600000;
-    transporter.sendMail({
-           from:"ishwaryaraman324@gmail.com",
-           to:`${user.email}`,
-           subject:'Password reset',
-           html:`<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
-           <a href="https://main--password-reset-frontend.netlify.app/reset-password/${token}"> click here </a>`
-    }, function(err, info) {
+  try {
+    const user = await Users.findOne({ email: email });
+
+    crypto.randomBytes(32, async (err, buffer) => {
       if (err) {
         console.log(err);
-      } else {
-        res.send({ message: "Email sent " });
-        console.log("Email sent" + info.response);
+        return response.status(500).send({ message: "Can't generate token" });
       }
+      const token = buffer.toString("hex");
+      if (!user) {
+        response.send({
+          message: `No user Found for this email ${email} Kindly Register and then try again `,
+        });
+      }
+      user.resetToken = token;
+      user.expiryTime = Date.now() + 3600000;
+      console.log("mail is going to be sent");
+      await transporter.sendMail(
+        {
+          from: "ishwaryaraman324@gmail.com",
+          to: `${user.email}`,
+          subject: "Password reset",
+          html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
+           <a href="https://main--password-reset-frontend.netlify.app/reset-password/${token}"> click here </a>`,
+        },
+        function (err, info) {
+          if (err) {
+            console.log(err);
+          } else {
+            res.send({ message: "Email sent " });
+            console.log("Email sent" + info.response);
+          }
+        }
+      );
+      console.log("done mail");
+      response.status(200).send({ message: "Email Sent successfully." });
     });
-    response.status(200).send({ message: "Email Sent successfully." });
-
-});
-  }catch(err){
-      console.log(err);
+  } catch (err) {
+    console.log(err);
   }
 });
 // reset password function tested working 100%.
 
-router.route('/reset-password')
-.post(async (request,response)=>{
-    
-    const {newPassword,token}=request.body;
-    try{
-      const user=await Users.find({
-          resetToken:token,
-          expiryTime:{$gt: Date.now()}
-      })
-      const salt=await bcrypt.genSalt(10);
-      const hashedPassword=await bcrypt.hash(newPassword,salt);
-      user.password=hashedPassword;
-      user.resetToken=undefined;
-      user.expiryTime=undefined;
-      response.send({message:"Password Changed successfully"})
-      await  user.save();
-    }catch(err){
-        console.log(err);
-    }
-})
+router.route("/reset-password/:token").post(async (request, response) => {
+  const {token}=request.params;
+  const { newPassword} = request.body;
+  try {
+    const user = await Users.find({
+      resetToken: token,
+      expiryTime: { $gt: Date.now() },
+    });
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.expiryTime = undefined;
+    response.send({ message: "Password Changed successfully" });
+    await user.save();
+  } catch (err) {
+    console.log(err);
+  }
+});
 export const userRouter = router;
