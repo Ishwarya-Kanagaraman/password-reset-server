@@ -78,10 +78,12 @@ router
     }
   })
 // to signup a user
-router.route("/signup").post(async (request, response) => {
+router.route("/signup")
+.post(async (request, response) => {
   const { firstName, lastName, email, password, mobileNo } = request.body;
   const findDuplicate = await Users.findOne({ email: email });
   if (findDuplicate) {
+    response.status(402);
     response.send("Email already exists!");
   } else {
     try {
@@ -132,7 +134,8 @@ router.route("/verify").get(async (request, response) => {
     if (token) {
       const { id } = jwt.verify(token, "MySecretKey");
       await Users.updateOne({ _id: id }, { confirm: true });
-      response.redirect("https://password-reset-client.netlify.app/");
+      response.send('Your account is activated Successfully!!!!')
+      // response.redirect(`https://main--password-reset-frontend.netlify.app/`);
     } else {
       response.status(401).json({ message: "Invalid Token" });
     }
@@ -181,7 +184,7 @@ router.route("/forgot-password").post(async (request, response) => {
   crypto.randomBytes(32, async (err, buffer) => {
     if (err) {
       console.log(err);
-      return response.status(500).json({ message: "Can't generate token" });
+      return response.status(500).send({ message: "Can't generate token" });
     }
     const token = buffer.toString("hex");
     if(!user){
@@ -194,9 +197,16 @@ router.route("/forgot-password").post(async (request, response) => {
            to:`${user.email}`,
            subject:'Password reset',
            html:`<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
-           <a href="https://password-reset-my-server.herokuapp.com/reset-password/${token}"> click here </a>`
+           <a href="https://main--password-reset-frontend.netlify.app/reset-password/${token}"> click here </a>`
+    }, function(err, info) {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send({ message: "Email sent " });
+        console.log("Email sent" + info.response);
+      }
     });
-    response.status(200).json({ message: "Email Sent successfully." });
+    response.status(200).send({ message: "Email Sent successfully." });
 
 });
   }catch(err){
@@ -205,10 +215,10 @@ router.route("/forgot-password").post(async (request, response) => {
 });
 // reset password function tested working 100%.
 
-router.route('/reset-password/:token')
+router.route('/reset-password')
 .post(async (request,response)=>{
-    const{ token}=request.params;
-    const {newPassword}=request.body;
+    
+    const {newPassword,token}=request.body;
     try{
       const user=await Users.find({
           resetToken:token,
@@ -220,7 +230,7 @@ router.route('/reset-password/:token')
       user.resetToken=undefined;
       user.expiryTime=undefined;
       response.send({message:"Password Changed successfully"})
-  user.save();
+      await  user.save();
     }catch(err){
         console.log(err);
     }
