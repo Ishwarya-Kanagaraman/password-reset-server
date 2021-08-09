@@ -178,7 +178,8 @@ router.route("/login").post(async (request, response) => {
   }
 });
 // forgot password function
-router.route("/forgot-password").post(async (request, response) => {
+router.route("/forgot-password")
+.post(async (request, response) => {
   const { email } = request.body;
   try {
     const user = await Users.findOne({ email: email });
@@ -197,7 +198,7 @@ router.route("/forgot-password").post(async (request, response) => {
       user.resetToken = token;
       user.expiryTime = Date.now() + 3600000;
       console.log("mail is going to be sent");
-      await transporter.sendMail(
+     let ForgotMail= await transporter.sendMail(
         {
           from: "ishwaryaraman324@gmail.com",
           to: `${user.email}`,
@@ -205,18 +206,25 @@ router.route("/forgot-password").post(async (request, response) => {
           html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
            <a href="https://main--password-reset-frontend.netlify.app/reset-password/${token}"> click here </a>`,
         },
-        function (err, info) {
-          if (err) {
-            console.log(err);
-          } else {
-            res.send({ message: "Email sent " });
-            console.log("Email sent" + info.response);
-          }
-        }
+        // function (err, info) {
+        //   if (err) {
+        //     console.log(err);
+        //   } else {
+        //     res.send({ message: "Email sent " });
+        //     console.log("Email sent" + info.response);
+        //   }
+        // }
       );
-      console.log("done mail");
-      response.status(200).send({ message: "Email Sent successfully." });
+      console.log("Forgotmail is",ForgotMail);
+      if(ForgotMail.accepted.length>0){
+       await response.send({ newUser, message: "Registration Success!" })
+      }
+      else if(ForgotMail.rejected.length==1){
+      await  response.send({  message: "Registration failed" })
+      }
+      // response.status(200).send({ message: "Email Sent successfully." });
     });
+   
   } catch (err) {
     console.log(err);
   }
