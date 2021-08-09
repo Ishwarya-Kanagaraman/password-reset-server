@@ -101,7 +101,7 @@ router.route("/signup").post(async (request, response) => {
       });
       console.log("token is-->", token);
       console.log(newUser);
-      transporter.sendMail(
+      let mail=await transporter.sendMail(
         {
           from: "xyz@gmail.com",
           to: `${newUser.email}`,
@@ -110,16 +110,23 @@ router.route("/signup").post(async (request, response) => {
           html: `<h1>Hi ${newUser.firstName} ${newUser.lastName},</h1><br/><h2>Welcome to Our Creators Insititute</h2><p>
             <a href="https://password-reset-my-server.herokuapp.com/verify?token=${token}">Click Here to activate your Account</a> `,
         },
-        function (err, info) {
-          if (err) {
-            console.log(err);
-          } else {
-            res.send({ message: "Email sent Successfully" });
-            console.log("Email sent" + info.response);
-          }
-        }
-      );
-      response.send({ newUser, message: "Registration Success!" });
+        // function (err, info) {
+        //   if (err) {
+        //     console.log(err);
+        //   } else {
+        //     res.send({ message: "Email sent Successfully" });
+        //     console.log("Email sent" + info.response);
+        //   }
+        // }
+      )
+      console.log("mail is",mail);
+      if(mail.accepted.length>0){
+       await response.send({ newUser, message: "Registration Success!" })
+      }
+      else if(mail.rejected.length==1){
+      await  response.send({  message: "Registration failed" })
+      }
+      // response.send({ newUser, message: "Registration Success!" });
     } catch (err) {
       console.log(err);
     }
