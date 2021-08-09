@@ -217,10 +217,10 @@ router.route("/forgot-password")
       );
       console.log("Forgotmail is",ForgotMail);
       if(ForgotMail.accepted.length>0){
-       await response.send({ newUser, message: "Registration Success!" })
+       await response.send({ newUser, message: "Mail Sent for Forgot Password!" })
       }
       else if(ForgotMail.rejected.length==1){
-      await  response.send({  message: "Registration failed" })
+      await  response.send({  message: "Errors" })
       }
       // response.status(200).send({ message: "Email Sent successfully." });
     });
