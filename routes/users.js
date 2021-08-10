@@ -113,7 +113,7 @@ router.route("/signup").post(async (request, response) => {
       );
       console.log("mail is", mail);
       if (mail.accepted.length > 0) {
-        await response.send({ newUser, message: "Registration Success!" });
+        await response.send({ newUser, message: "Registration Success.kindly check email to activate your account!" });
       } else if (mail.rejected.length == 1) {
         await response.send({ message: "Registration failed" });
       }
@@ -230,18 +230,31 @@ router.route('/reset-password/:resetToken')
     const salt = await bcrypt.genSalt(10);
     const newhashedPassword = await bcrypt.hash(newPassword, salt);
     // usersList.password = newhashedPassword;
-    const usersList = await Users.findOneAndUpdate({resetToken:resetToken},{password:newhashedPassword,resetToken:undefined,expiryTime:undefined});
+    const usersList = await Users.findOne(
+      {
+        resetToken:resetToken
+      },
+      // {
+      //   password:newhashedPassword,
+      //   // resetToken:undefined,
+      //   // expiryTime:undefined
+      // },
+      // {
+      //   useFindAndModify: false
+      // }
+      );
 
     console.log("found User by Token",usersList);
-    // if(usersList){
-    //   usersList.lastName=lastName;
-    //   await usersList.save();
-    // }
-    // console.log("updated User by Token",usersList);
+    if(usersList){
+      // usersList.lastName=lastName;
+      usersList.password = newhashedPassword;
+      await usersList.save();
+    }
+    console.log("updated User by Token",usersList);
     
     // await usersList.save();
     // response.send({ message: "Password Changed successfully for user found by Token",usersList });
-   await response.send({message:"userFound and updated",usersList});
+    response.send({message:"userFound and updated",usersList});
     // console.log("found User by Token",usersList);
   } catch (err) {
     response.send(err);
