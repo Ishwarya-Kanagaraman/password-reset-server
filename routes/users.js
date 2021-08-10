@@ -1,17 +1,19 @@
 import { Users } from "../models/user.js";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import express from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
-dotenv.config();
+// dotenv.config();
 const router = express.Router();
 let transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.USER,
-    pass: process.env.PASSWORD,
+    // user:process.env.USER,
+    // pass:process.env.PASSWORD,
+    user: "ishwaryaraman324@gmail.com",
+    pass: "um@r@m@n@&@))$",
   },
 });
 
@@ -65,23 +67,13 @@ router
       console.log(err);
     }
   });
-router.route("/createUsers").post(async (request, response) => {
-  const addUser = request.body;
-  console.log(addUser);
-  const user = new Users(addUser);
-  try {
-    const newUser = await user.save();
-    response.send({ newUser, message: "created and Added successfully" });
-  } catch (err) {
-    console.log(err);
-  }
-});
+
 // to signup a user
 router.route("/signup").post(async (request, response) => {
   const { firstName, lastName, email, password, mobileNo } = request.body;
   const findDuplicate = await Users.findOne({ email: email });
   if (findDuplicate) {
-    response.status(402);
+    response.status(409);
     response.send("Email already exists!");
   } else {
     try {
@@ -101,7 +93,7 @@ router.route("/signup").post(async (request, response) => {
       });
       console.log("token is-->", token);
       console.log(newUser);
-      let mail=await transporter.sendMail(
+      let mail = await transporter.sendMail(
         {
           from: "xyz@gmail.com",
           to: `${newUser.email}`,
@@ -109,7 +101,7 @@ router.route("/signup").post(async (request, response) => {
           // text: 'Node.js testing mail'
           html: `<h1>Hi ${newUser.firstName} ${newUser.lastName},</h1><br/><h2>Welcome to Our Creators Insititute</h2><p>
             <a href="https://password-reset-my-server.herokuapp.com/verify?token=${token}">Click Here to activate your Account</a> `,
-        },
+        }
         // function (err, info) {
         //   if (err) {
         //     console.log(err);
@@ -118,13 +110,12 @@ router.route("/signup").post(async (request, response) => {
         //     console.log("Email sent" + info.response);
         //   }
         // }
-      )
-      console.log("mail is",mail);
-      if(mail.accepted.length>0){
-       await response.send({ newUser, message: "Registration Success!" })
-      }
-      else if(mail.rejected.length==1){
-      await  response.send({  message: "Registration failed" })
+      );
+      console.log("mail is", mail);
+      if (mail.accepted.length > 0) {
+        await response.send({ newUser, message: "Registration Success!" });
+      } else if (mail.rejected.length == 1) {
+        await response.send({ message: "Registration failed" });
       }
       // response.send({ newUser, message: "Registration Success!" });
     } catch (err) {
@@ -178,8 +169,7 @@ router.route("/login").post(async (request, response) => {
   }
 });
 // forgot password function
-router.route("/forgot-password")
-.post(async (request, response) => {
+router.route("/forgot-password").post(async (request, response) => {
   const { email } = request.body;
   try {
     const user = await Users.findOne({ email: email });
@@ -197,15 +187,16 @@ router.route("/forgot-password")
       }
       user.resetToken = token;
       user.expiryTime = Date.now() + 3600000;
+      await user.save();
       console.log("mail is going to be sent");
-     let ForgotMail= await transporter.sendMail(
+      let ForgotMail = await transporter.sendMail(
         {
           from: "ishwaryaraman324@gmail.com",
           to: `${user.email}`,
           subject: "Password reset",
           html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
-           <a href="https://main--password-reset-frontend.netlify.app/reset-password/${token}"> click here </a>`,
-        },
+           <a href="http://localhost:3000/reset-password/${token}"> click here </a>`,
+        }
         // function (err, info) {
         //   if (err) {
         //     console.log(err);
@@ -215,39 +206,74 @@ router.route("/forgot-password")
         //   }
         // }
       );
-      console.log("Forgotmail is",ForgotMail);
-      if(ForgotMail.accepted.length>0){
-       await response.send({ newUser, message: "Mail Sent for Forgot Password!" })
-      }
-      else if(ForgotMail.rejected.length==1){
-      await  response.send({  message: "Errors" })
+      console.log("Forgotmail is", ForgotMail);
+      if (ForgotMail.accepted.length > 0) {
+        await response.send({
+          message: "Mail Sent for Forgot Password!",
+        });
+        console.log(user);
+      } else if (ForgotMail.rejected.length == 1) {
+        await response.send({ message: "Errors" });
       }
       // response.status(200).send({ message: "Email Sent successfully." });
     });
-   
   } catch (err) {
     console.log(err);
   }
 });
 // reset password function tested working 100%.
-
-router.route("/reset-password/:token").post(async (request, response) => {
-  const {token}=request.params;
-  const { newPassword} = request.body;
+router.route('/reset-password/:resetToken')
+.post(async (request, response) => {
+  const {resetToken}=request.params;
+  const { newPassword } = request.body;
   try {
-    const user = await Users.find({
-      resetToken: token,
-      expiryTime: { $gt: Date.now() },
-    });
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-    user.password = hashedPassword;
-    user.resetToken = undefined;
-    user.expiryTime = undefined;
-    response.send({ message: "Password Changed successfully" });
-    await user.save();
+    const newhashedPassword = await bcrypt.hash(newPassword, salt);
+    // usersList.password = newhashedPassword;
+    const usersList = await Users.findOneAndUpdate({resetToken:resetToken},{password:newhashedPassword,resetToken:undefined,expiryTime:undefined});
+
+    console.log("found User by Token",usersList);
+    // if(usersList){
+    //   usersList.lastName=lastName;
+    //   await usersList.save();
+    // }
+    // console.log("updated User by Token",usersList);
+    
+    // await usersList.save();
+    // response.send({ message: "Password Changed successfully for user found by Token",usersList });
+   await response.send({message:"userFound and updated",usersList});
+    // console.log("found User by Token",usersList);
   } catch (err) {
+    response.send(err);
     console.log(err);
   }
-});
+})
+// router.route("/reset-password/:resetToken")
+// .post(async (request, response) => {
+//   const { resetToken } = request.params;
+//   const { newPassword,email } = request.body;
+//   try {
+//     const user = await Users.findOne({
+//       // resetToken: resetToken,
+//       email:email
+//       // expiryTime: { $gt: Date.now() },
+//     });
+//     // if(user){
+//     console.log("for reset user is", user);
+//     const salt = await bcrypt.genSalt(10);
+//     const newhashedPassword = await bcrypt.hash(newPassword, salt);
+//     user.password = newhashedPassword;
+//     // user.resetToken = undefined;
+//     // user.expiryTime = undefined;
+//     await user.save();
+//     response.send({ message: "Password Changed successfully" });
+   
+//     }
+//     // else{
+//     //   console.log("error")
+//     // }
+//   catch (err) {
+//     console.log(err);
+//   }
+// });
 export const userRouter = router;

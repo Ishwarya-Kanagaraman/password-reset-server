@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import {userRouter} from './routes/users.js'
 const app=express();
-const PORT=process.env.PORT||3003;
+const PORT=process.env.PORT||8080;
 dotenv.config();
 
 // connect to the database
