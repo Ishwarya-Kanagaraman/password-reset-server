@@ -222,10 +222,11 @@ router.route("/forgot-password").post(async (request, response) => {
   }
 });
 // reset password function tested working 100%.
-router.route('/reset-password/:resetToken')
+router.route('/reset-password')
+// router.route('/reset-password/:resetToken')
 .post(async (request, response) => {
-  const {resetToken}=request.params;
-  const { newPassword } = request.body;
+  // const {resetToken}=request.params;
+  const { resetToken,newPassword } = request.body;
   try {
     const salt = await bcrypt.genSalt(10);
     const newhashedPassword = await bcrypt.hash(newPassword, salt);
@@ -248,6 +249,8 @@ router.route('/reset-password/:resetToken')
     if(usersList){
       // usersList.lastName=lastName;
       usersList.password = newhashedPassword;
+      usersList.resetToken=undefined;
+      usersList.expiryTime=undefined;
       await usersList.save();
     }
     console.log("updated User by Token",usersList);
