@@ -195,7 +195,7 @@ router.route("/forgot-password").post(async (request, response) => {
           to: `${user.email}`,
           subject: "Password reset",
           html: `<h4>Your request for password reset has been accepted </h4><br/> <p> To reset your password, 
-           <a href="http://localhost:3000/reset-password/${token}"> click here </a>`,
+           <a href="https://password-reset-frontend.netlify.app/reset-password/${token}"> click here </a>`,
         }
         // function (err, info) {
         //   if (err) {
