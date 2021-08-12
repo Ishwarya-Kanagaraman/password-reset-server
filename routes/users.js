@@ -258,6 +258,7 @@ router.route('/reset-password')
     // await usersList.save();
     // response.send({ message: "Password Changed successfully for user found by Token",usersList });
     response.send({message:"userFound and updated",usersList});
+    response.redirect("https://password-reset-frontend.netlify.app/login");
     // console.log("found User by Token",usersList);
   } catch (err) {
     response.send(err);
